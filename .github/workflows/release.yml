@@ -7,12 +7,25 @@
 #   ANDROID_KEYSTORE_PASSWORD keystore password
 #   ANDROID_KEY_ALIAS         key alias (crosssync)
 #   ANDROID_KEY_PASSWORD      key password
+#
+# Manual run (Actions → Release → Run workflow) with "Refresh release" set to an existing tag:
+# rebuilds from the selected branch and replaces the exe (and optionally the APK) on that release,
+# with new checksums and attestations. Other release files and the notes are left alone.
 name: Release
 
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      refresh_tag:
+        description: "Refresh release: existing release tag to update (e.g. v1.0.0). Empty = build only."
+        required: false
+        default: ""
+      include_apk:
+        description: "Also replace the APK"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -43,6 +56,7 @@ jobs:
 
   android:
     name: Android APK
+    if: github.event_name == 'push' || inputs.include_apk || inputs.refresh_tag == ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -124,3 +138,53 @@ jobs:
           gh release create "$TAG" CrossSync.exe CrossSync.apk SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" --title "CrossSync ${TAG#v}" --generate-notes $prerelease \
             --notes "Built from this tag by GitHub Actions. Verify downloads against SHA256SUMS.txt, or with \`gh attestation verify <file> --repo $GITHUB_REPOSITORY\`. The Windows exe is not code-signed yet: SmartScreen shows a warning (More info → Run anyway)."
+
+  refresh:
+    name: Refresh existing release
+    needs: [windows, android]
+    if: >-
+      always() && github.event_name == 'workflow_dispatch' && inputs.refresh_tag != '' &&
+      needs.windows.result == 'success' &&
+      (needs.android.result == 'success' || needs.android.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.refresh_tag }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Keep the release's current APK unless a new one was built
+        run: |
+          if [ ! -f CrossSync.apk ]; then
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern CrossSync.apk
+            echo "NEW_APK=false" >> "$GITHUB_ENV"
+          else
+            echo "NEW_APK=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Checksums
+        run: sha256sum CrossSync.exe CrossSync.apk | tee SHA256SUMS.txt
+
+      - name: Attest the rebuilt exe
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: CrossSync.exe
+
+      - name: Attest the rebuilt APK
+        if: env.NEW_APK == 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: CrossSync.apk
+
+      - name: Replace files on the release
+        run: |
+          files="CrossSync.exe SHA256SUMS.txt"
+          [ "$NEW_APK" = "true" ] && files="$files CrossSync.apk"
+          gh release upload "$TAG" $files --repo "$GITHUB_REPOSITORY" --clobber
+          echo "Updated $TAG with: $files (built from $GITHUB_SHA)"
