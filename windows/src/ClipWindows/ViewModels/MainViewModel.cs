@@ -66,9 +66,6 @@ public partial class MainViewModel : ObservableObject
 
     public string CertificateFingerprint => _networkServer.CertificateFingerprint;
 
-    private const string StartupRegKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-    private const string StartupRegValue = "CrossSync";
-
     public ObservableCollection<ClipboardPayload> ClipboardHistory { get; } = new();
     public ObservableCollection<TransferItem> Transfers { get; } = new();
     public ObservableCollection<PairedDevice> PairedDevices { get; } = new();
@@ -102,52 +99,34 @@ public partial class MainViewModel : ObservableObject
         _downloadDirectory = _settings.DownloadDirectory;
         _pairingCode = _networkServer.PairingCode;
 
-        // Re-writes the Run value if enabled, which also repairs entries saved by older versions
-        RunOnStartup = IsStartupEnabled();
+        _ = InitStartupAsync();
 
         RefreshPairedDevices();
         ResolveLocalIp();
         NetworkChange.NetworkAddressChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(ResolveLocalIp);
     }
 
-    // ── Startup helpers ──────────────────────────────────────────────────────
-    private static bool IsStartupEnabled()
+    // ── Startup ──────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Reads the startup setting and, if it's on, re-registers it with this exe's current path,
+    /// which also moves older Run-entry installs to the faster logon task. Runs schtasks.exe, so
+    /// it's kept off the UI thread.
+    /// </summary>
+    private async Task InitStartupAsync()
     {
-        try
-        {
-            using var key = Registry.CurrentUser.OpenSubKey(StartupRegKey, false);
-            return key?.GetValue(StartupRegValue) != null;
-        }
-        catch
-        {
-            return false;
-        }
+        bool enabled = await Task.Run(StartupRegistration.IsEnabled);
+        if (enabled) await Task.Run(() => StartupRegistration.Set(true));
+        _syncingStartup = true;
+        RunOnStartup = enabled;
+        _syncingStartup = false;
     }
+
+    private bool _syncingStartup;
 
     partial void OnRunOnStartupChanged(bool value)
     {
-        try
-        {
-            using var key = Registry.CurrentUser.OpenSubKey(StartupRegKey, true);
-            if (key == null) return;
-            if (value)
-            {
-                var exePath = Environment.ProcessPath ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
-                if (!string.IsNullOrEmpty(exePath))
-                {
-                    // Start in the tray when launched at sign-in
-                    key.SetValue(StartupRegValue, $"\"{exePath}\" {App.MinimizedArg}");
-                }
-            }
-            else
-            {
-                key.DeleteValue(StartupRegValue, throwOnMissingValue: false);
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to update startup registry: {ex.Message}");
-        }
+        if (_syncingStartup) return;
+        _ = Task.Run(() => StartupRegistration.Set(value));
     }
 
     // ── Settings ─────────────────────────────────────────────────────────────
