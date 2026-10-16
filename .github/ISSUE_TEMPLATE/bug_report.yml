@@ -1,0 +1,71 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For **security problems**, please don't use this form: see [SECURITY.md](https://github.com/Sanket-Baviskar/CrossSync/blob/main/SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        I copied text in WhatsApp on my phone, expected it on the PC clipboard, but nothing arrived.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Clipboard: phone → PC
+        - Clipboard: PC → phone
+        - Clipboard: images
+        - Files: PC → phone (right-click menu / Send File)
+        - Files: phone → PC / phone (Share)
+        - Pairing / connecting
+        - App crashes or freezes
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App where you copied (if clipboard)
+      placeholder: ChatGPT, Chrome, WhatsApp...
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model and Android version
+      placeholder: Samsung Galaxy S24 Ultra, Android 15 (One UI 7)
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CrossSync version
+      description: Shown in the bottom-right corner of the PC app, e.g. v1.0.0
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: The PC and phone are on the same Wi-Fi network
+        - label: The CrossSync accessibility service is turned on (for phone → PC clipboard)
+        - label: The phone app's dashboard shows "Connected · Encrypted"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, or what the PC app's status bar or the phone's dashboard says.

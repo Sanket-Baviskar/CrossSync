@@ -170,8 +170,10 @@ CrossSync/
 │       └── utils/               # Clipboard, downloads, notifications, file opener
 ├── docs/
 │   └── PROTOCOL.md              # Wire protocol specification
-├── tools/make_icon.py           # Generates the app icon
-└── .github/workflows/release.yml  # Builds and publishes releases on version tags
+├── tools/                       # Icon generators (Windows .ico, Android adaptive icon)
+└── .github/
+    ├── workflows/build.yml      # Builds both apps on every push and pull request
+    └── workflows/release.yml    # Builds and publishes releases on version tags
 ```
 
 The wire format, handshake and pairing are documented in [docs/PROTOCOL.md](docs/PROTOCOL.md).
@@ -186,6 +188,11 @@ The wire format, handshake and pairing are documented in [docs/PROTOCOL.md](docs
 - [ ] Windows 11 modern context menu (needs MSIX packaging)
 - [ ] Show which phone a relayed clip or file came from
 - [ ] Keep the PC's clipboard history after a restart
+
+## Feedback and security
+
+- **Bugs and ideas:** [open an issue](../../issues/new/choose). For bugs, please include your phone model, Android version and Windows version.
+- **Security problems:** please report them privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

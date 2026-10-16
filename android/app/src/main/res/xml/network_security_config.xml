@@ -1,18 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- All traffic to the PC is TLS (pinned to the PC's certificate fingerprint in TlsHelper), and
+     discovery is UDP, which this file doesn't cover, so cleartext HTTP is never needed. -->
 <network-security-config>
-    <!-- Allow cleartext traffic on local network for TCP communication with PC -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.0.0</domain>
-        <domain includeSubdomains="true">10.0.0.0</domain>
-        <domain includeSubdomains="true">172.16.0.0</domain>
-    </domain-config>
-    <!-- Allow cleartext for all private IP ranges (LAN communication) -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">local</domain>
-    </domain-config>
 </network-security-config>
