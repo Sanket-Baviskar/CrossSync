@@ -40,7 +40,7 @@ Copy on your phone and paste on your PC, or the other way round. Send files from
 
 Get **`CrossSync.exe`** (Windows, self-contained, no .NET install needed) and **`CrossSync.apk`** (Android) from the [**Releases**](../../releases) page.
 
-> The current builds are **test builds**. The exe is not code-signed, so Windows SmartScreen will warn you. The APK is signed with a debug key and installs as a separate "debug" app. Release signing is on the roadmap.
+> The exe is not code-signed yet, so Windows SmartScreen will warn you the first time (**More info → Run anyway**). The APK is a signed release build.
 
 ---
 
@@ -99,7 +99,7 @@ Tested on: Samsung One UI (Android 13 and 17), Motorola (Android 16), and stock 
 - **Guarded against floods.** Repeated failed handshakes from one IP are throttled. Every message type has a size limit, and received file names are sanitised.
 - **Local only.** Nothing leaves your LAN. There is no server, telemetry or account.
 
-Still to do: release signing for the APK, Authenticode signing for the exe, and code obfuscation.
+Release APKs are signed and shrunk/obfuscated with R8. Still to do: Authenticode signing for the Windows exe.
 
 ---
 
@@ -127,6 +127,18 @@ cd android
 ```
 
 The APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+**Signed release build** (shrunk and obfuscated with R8):
+
+1. Create a keystore once, keeping it outside the repo. The `keytool` command is in [`android/keystore.properties.example`](android/keystore.properties.example).
+2. Copy `keystore.properties.example` to `android/keystore.properties` and fill in the path and passwords. Git ignores this file.
+3. Build it:
+   ```bash
+   ./gradlew assembleRelease
+   ```
+   The APK is created at `android/app/build/outputs/apk/release/app-release.apk`.
+
+Without `keystore.properties`, the release APK is built unsigned. Back up the keystore and its password: every future update must be signed with the same key.
 
 ---
 
@@ -158,7 +170,8 @@ The wire format, handshake and pairing are documented in [docs/PROTOCOL.md](docs
 
 ## Roadmap
 
-- [ ] Release signing (APK) and code signing (exe)
+- [x] Release signing (APK)
+- [ ] Code signing (exe)
 - [ ] Send whole folders from the Explorer menu
 - [ ] Windows 11 modern context menu (needs MSIX packaging)
 - [ ] Show which phone a relayed clip or file came from
