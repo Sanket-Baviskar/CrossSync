@@ -1,0 +1,126 @@
+# Builds both apps from source when a version tag (v1.2.3, v1.2.3-beta) is pushed, and publishes
+# a GitHub Release with the exe, the signed APK, SHA-256 checksums and build provenance
+# attestations (verify with: gh attestation verify <file> --repo Sanket-Baviskar/CrossSync).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64   the release .jks, base64-encoded
+#   ANDROID_KEYSTORE_PASSWORD keystore password
+#   ANDROID_KEY_ALIAS         key alias (crosssync)
+#   ANDROID_KEY_PASSWORD      key password
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows exe
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Publish self-contained single-file exe
+        shell: pwsh
+        run: >
+          dotnet publish windows/src/ClipWindows/ClipWindows.csproj -c Release -r win-x64
+          --self-contained -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true -o out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/CrossSync.exe
+          if-no-files-found: error
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing; refusing to publish an unsigned APK"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/keystore.properties
+
+      - name: Build signed release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/CrossSync.apk"
+
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" android/keystore.properties
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: CrossSync.apk
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: [windows, android]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # create the release
+      id-token: write       # sign the attestation
+      attestations: write   # store the attestation
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Checksums
+        run: sha256sum CrossSync.exe CrossSync.apk | tee SHA256SUMS.txt
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            CrossSync.exe
+            CrossSync.apk
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=""
+          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" CrossSync.exe CrossSync.apk SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --title "CrossSync ${TAG#v}" --generate-notes $prerelease \
+            --notes "Built from this tag by GitHub Actions. Verify downloads against SHA256SUMS.txt, or with \`gh attestation verify <file> --repo $GITHUB_REPOSITORY\`. The Windows exe is not code-signed yet: SmartScreen shows a warning (More info → Run anyway)."

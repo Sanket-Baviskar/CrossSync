@@ -7,6 +7,23 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Assets\crosssync.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- Shown in Explorer (Properties → Details), Task Manager and the SmartScreen prompt -->
+  <PropertyGroup>
+    <AssemblyName>CrossSync</AssemblyName>
+    <Product>CrossSync</Product>
+    <AssemblyTitle>CrossSync</AssemblyTitle>
+    <Description>CrossSync: clipboard and file sync between Windows and Android</Description>
+    <Company>Sanket Baviskar</Company>
+    <Authors>Sanket Baviskar</Authors>
+    <Copyright>Copyright © 2026 Sanket Baviskar. Licensed under GPL-3.0-or-later.</Copyright>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <RepositoryUrl>https://github.com/Sanket-Baviskar/CrossSync</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

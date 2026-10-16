@@ -1,4 +1,6 @@
-# CrossSync
+<p align="center"><img src="docs/icon.png" width="128" alt="CrossSync icon"></p>
+
+<h1 align="center">CrossSync</h1>
 
 **Clipboard and file sync between Windows and Android over your local Wi-Fi.** No cloud, no account, no internet needed.
 
@@ -39,6 +41,12 @@ Copy on your phone and paste on your PC, or the other way round. Send files from
 ## Download
 
 Get **`CrossSync.exe`** (Windows, self-contained, no .NET install needed) and **`CrossSync.apk`** (Android) from the [**Releases**](../../releases) page.
+
+GitHub Actions builds every release from the tagged source ([workflow](.github/workflows/release.yml)). Each release also includes `SHA256SUMS.txt` and a signed build-provenance attestation, so you can check that a download is unmodified and was built from this repo:
+
+```bash
+gh attestation verify CrossSync.exe --repo Sanket-Baviskar/CrossSync
+```
 
 > The exe is not code-signed yet, so Windows SmartScreen will warn you the first time (**More info → Run anyway**). The APK is a signed release build.
 
@@ -116,7 +124,7 @@ dotnet publish src/ClipWindows/ClipWindows.csproj -c Release -r win-x64 --self-c
   -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-The exe is created in `windows/src/ClipWindows/bin/Release/net9.0-windows/win-x64/publish/`.
+The exe is created as `CrossSync.exe` in `windows/src/ClipWindows/bin/Release/net9.0-windows/win-x64/publish/`.
 
 ### Android app
 Requires JDK 17 and the Android SDK (compileSdk 35). Android Studio provides both.
@@ -160,8 +168,10 @@ CrossSync/
 │       ├── ui/                  # Compose screens, share target, clipboard trampoline
 │       ├── data/                # Room DB, repositories, settings
 │       └── utils/               # Clipboard, downloads, notifications, file opener
-└── docs/
-    └── PROTOCOL.md              # Wire protocol specification
+├── docs/
+│   └── PROTOCOL.md              # Wire protocol specification
+├── tools/make_icon.py           # Generates the app icon
+└── .github/workflows/release.yml  # Builds and publishes releases on version tags
 ```
 
 The wire format, handshake and pairing are documented in [docs/PROTOCOL.md](docs/PROTOCOL.md).
