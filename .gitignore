@@ -1,0 +1,43 @@
+# ---- Windows app (.NET / Visual Studio) ----
+windows/**/bin/
+windows/**/obj/
+.vs/
+*.user
+*.suo
+*.rsuser
+*.DotSettings.user
+publish/
+*.pubxml.user
+
+# ---- Android app (Gradle / Android Studio) ----
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+.idea/
+*.iml
+# Eclipse / VS Code Java tooling
+.project
+.classpath
+.settings/
+
+# ---- Signing material and secrets: never commit ----
+*.jks
+*.keystore
+*.pfx
+*.p12
+keystore.properties
+signing.properties
+
+# ---- Build artifacts and OS clutter ----
+*.apk
+*.aab
+*.exe
+*.zip
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,82 @@
+<resources>
+    <string name="app_name">CrossSync</string>
+    <string name="tile_label">CrossSync</string>
+    <string name="share_target_label">CrossSync</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_transfers">Transfers</string>
+    <string name="nav_clipboard">Clipboard</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_connected">Connected</string>
+    <string name="dashboard_disconnected">Disconnected</string>
+    <string name="dashboard_connecting">Connecting…</string>
+    <string name="dashboard_pc_label">PC: %1$s</string>
+    <string name="dashboard_ip_label">IP: %1$s</string>
+    <string name="dashboard_start_sync">Start Sync</string>
+    <string name="dashboard_stop_sync">Stop Sync</string>
+    <string name="dashboard_discover">Discover Devices</string>
+    <string name="dashboard_no_devices">No devices found on network</string>
+    <string name="dashboard_searching">Searching for CrossSync PCs…</string>
+
+    <!-- Transfers -->
+    <string name="transfers_empty">No active transfers</string>
+    <string name="transfers_sending">Sending</string>
+    <string name="transfers_receiving">Receiving</string>
+    <string name="transfers_completed">Completed</string>
+    <string name="transfers_failed">Failed</string>
+    <string name="transfers_paused">Paused</string>
+    <string name="transfer_speed">%1$s/s</string>
+    <string name="transfer_progress">%1$d%%</string>
+    <string name="transfer_eta">ETA: %1$s</string>
+
+    <!-- Clipboard -->
+    <string name="clipboard_empty">No clipboard items synced yet</string>
+    <string name="clipboard_copy">Copy</string>
+    <string name="clipboard_delete">Delete</string>
+    <string name="clipboard_text_item">Text</string>
+    <string name="clipboard_image_item">Image</string>
+    <string name="clipboard_synced_from_pc">From PC</string>
+    <string name="clipboard_synced_from_android">From Android</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_connection">Connection</string>
+    <string name="settings_peer_ip">Peer IP Address</string>
+    <string name="settings_peer_port">Peer Port</string>
+    <string name="settings_auto_start">Start on Boot</string>
+    <string name="settings_auto_start_desc">Automatically start sync when device boots</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_download_dir">Download Directory</string>
+    <string name="settings_clipboard_sync">Clipboard Sync</string>
+    <string name="settings_clipboard_sync_desc">Automatically sync clipboard between devices</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_transfer_notifications">Transfer Notifications</string>
+    <string name="settings_transfer_notifications_desc">Show notifications for file transfer events</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_reset">Reset to Defaults</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_service">CrossSync Service</string>
+    <string name="notification_channel_transfers">File Transfers</string>
+    <string name="notification_service_running">CrossSync is running</string>
+    <string name="notification_transfer_complete">Transfer Complete: %1$s</string>
+    <string name="notification_transfer_failed">Transfer Failed: %1$s</string>
+    <string name="notification_action_stop">Stop</string>
+
+    <!-- Errors -->
+    <string name="error_connection_failed">Connection failed. Check IP and network.</string>
+    <string name="error_checksum_mismatch">File verification failed — checksum mismatch</string>
+    <string name="error_permission_denied">Storage permission required for file transfers</string>
+
+    <!-- 24/7 Background Accessibility & Battery -->
+    <string name="accessibility_service_label">CrossSync 24/7 Clipboard Sync</string>
+    <string name="accessibility_service_desc">Enables CrossSync to automatically detect copied text in any application and send it to your PC in the background.</string>
+    <string name="settings_accessibility">24/7 Background Clipboard</string>
+    <string name="settings_accessibility_desc">Enable Accessibility permission for automatic background sync</string>
+    <string name="settings_battery_optimization">Battery Optimization</string>
+    <string name="settings_battery_optimization_desc">Disable battery restrictions for uninterrupted 24/7 sync</string>
+</resources>

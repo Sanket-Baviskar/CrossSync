@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="downloads" path="CrossSync/Downloads/" />
+    <cache-path name="cache" path="." />
+    <!-- Clipboard images: received ones are offered to other apps for pasting -->
+    <files-path name="clipboard_images" path="clipboard_images/" />
+    <external-cache-path name="external_cache" path="." />
+</paths>

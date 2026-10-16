@@ -1,0 +1,16 @@
+# Normalise line endings in the repo; check out with the platform's native endings
+* text=auto
+
+# Shell scripts must keep LF or they won't run on Linux/macOS CI
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Windows-only scripts and solution files keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sln text eol=crlf
+
+# Binary
+*.jar binary
+*.png binary
+*.ico binary

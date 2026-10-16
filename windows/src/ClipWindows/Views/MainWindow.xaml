@@ -1,0 +1,391 @@
+<Window x:Class="ClipWindows.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ClipWindows.ViewModels"
+        mc:Ignorable="d"
+        Title="CrossSync — 24/7 Clipboard &amp; File Sync" Height="600" Width="860"
+        MinHeight="480" MinWidth="640"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E2E" Foreground="#CDD6F4">
+
+    <Window.DataContext>
+        <vm:MainViewModel x:Name="ViewModel" />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <Style TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder" Background="#181825" BorderBrush="#313244" BorderThickness="1,1,1,0"
+                                CornerRadius="6,6,0,0" Padding="14,7" Margin="0,0,4,0">
+                            <ContentPresenter ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="#313244" />
+                                <Setter Property="Foreground" Value="#89B4FA" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#89B4FA" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header Bar -->
+        <Border Grid.Row="0" Background="#181825" Padding="16,12" BorderBrush="#313244" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="CrossSync" FontSize="18" FontWeight="Bold" Foreground="#89B4FA" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Border CornerRadius="12" Padding="10,4" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                        <Setter Property="Background" Value="#A6E3A1"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                        <Setter Property="Background" Value="#F38BA8"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock FontSize="11" FontWeight="Bold" Foreground="#11111B">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                            <Setter Property="Text" Value="CONNECTED"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                            <Setter Property="Text" Value="WAITING FOR PHONE"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+                    <!-- Device name and IP -->
+                    <Border CornerRadius="8" Padding="10,4" Background="#313244" Margin="12,0,0,0">
+                        <Border.ToolTip>
+                            <ItemsControl ItemsSource="{Binding ConnectedDevices}" DisplayMemberPath="DisplayName"/>
+                        </Border.ToolTip>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Phones: " Foreground="#89B4FA" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Text="{Binding ConnectedDeviceName}" Foreground="#A6E3A1" FontWeight="Bold" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Send File to Phone" Command="{Binding SendFileCommand}"
+                            Background="#89B4FA" Foreground="#11111B" FontWeight="Bold"
+                            Padding="14,7" Margin="0,0,8,0" BorderThickness="0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Content="Open Downloads" Command="{Binding OpenDownloadFolderCommand}"
+                            Background="#313244" Foreground="#CDD6F4"
+                            Padding="12,7" BorderThickness="0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content Tabs -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="12">
+            <!-- Clipboard Tab -->
+            <TabItem Header="Clipboard Sync (Automatic 24/7)" Foreground="#CDD6F4" FontSize="13">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Auto Sync Notice & Manual Text Sender -->
+                    <Border Grid.Row="0" Margin="0,0,0,10" Padding="12,10" Background="#181825" CornerRadius="8" BorderBrush="#313244" BorderThickness="1">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <TextBlock Text="Minimizing hides to Tray" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="12,0,0,0"
+                                           Foreground="#6C7086" FontSize="11"/>
+                                <TextBlock TextWrapping="Wrap" Text="⚡ Anything you copy on this PC or any connected phone syncs to all of them (turn off in Settings)."
+                                           Foreground="#89B4FA" FontWeight="SemiBold" FontSize="12"/>
+                            </DockPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding ManualSendText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="#1E1E2E" Foreground="#CDD6F4" BorderBrush="#313244" Padding="8,6" FontSize="12"
+                                         VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Send Text to Phone" Command="{Binding SendManualTextCommand}"
+                                        Background="#89B4FA" Foreground="#11111B" FontWeight="Bold" Padding="12,6" Margin="8,0,0,0"
+                                        BorderThickness="0" Cursor="Hand"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <DockPanel Grid.Row="1" Margin="0,0,0,8">
+                        <TextBlock Text="Recent Synchronized Clips" FontWeight="SemiBold" Foreground="#BAC2DE" VerticalAlignment="Center"/>
+                        <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearHistoryCommand}"
+                                Background="Transparent" Foreground="#F38BA8" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand"/>
+                    </DockPanel>
+
+                    <ListBox Grid.Row="2" ItemsSource="{Binding ClipboardHistory}" Background="#181825" BorderBrush="#313244" BorderThickness="1"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="4,3" Padding="10,8" Background="#1E1E2E" CornerRadius="6" BorderBrush="#313244" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <DockPanel Grid.Row="0" Margin="0,0,0,4">
+                                            <TextBlock Text="{Binding SourceLabel}" FontWeight="Bold" FontSize="11" Foreground="#F9E2AF"/>
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}" HorizontalAlignment="Right" Foreground="#6C7086" FontSize="11"/>
+                                        </DockPanel>
+                                        <Image Grid.Row="1" Source="{Binding Thumbnail}" MaxHeight="120" HorizontalAlignment="Left"
+                                               Stretch="Uniform" Margin="0,2,0,4"
+                                               Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibility}}"/>
+                                        <TextBlock Grid.Row="2" Text="{Binding Text}" TextWrapping="Wrap" Foreground="#CDD6F4" MaxHeight="60"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Transfers Tab -->
+            <TabItem Header="Transfers" Foreground="#CDD6F4" FontSize="13">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock Text="File Transfers" FontWeight="SemiBold" Foreground="#BAC2DE" VerticalAlignment="Center"/>
+                        <Button DockPanel.Dock="Right" Content="Clear Finished" Command="{Binding ClearFinishedTransfersCommand}"
+                                Background="Transparent" Foreground="#F38BA8" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand"/>
+                    </DockPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Transfers}" Background="#181825" BorderBrush="#313244" BorderThickness="1"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             HorizontalContentAlignment="Stretch">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="4,3" Padding="12,10" Background="#1E1E2E" CornerRadius="6" BorderBrush="#313244" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <DockPanel Grid.Row="0" Margin="0,0,0,6">
+                                            <TextBlock Text="{Binding FileName}" FontWeight="Bold" Foreground="#89B4FA"/>
+                                            <TextBlock Text="{Binding Status}" HorizontalAlignment="Right" Foreground="#A6E3A1" FontWeight="SemiBold"/>
+                                        </DockPanel>
+                                        <ProgressBar Grid.Row="1" Height="6" Value="{Binding ProgressPercentage, Mode=OneWay}" Maximum="100" Background="#313244" Foreground="#89B4FA" Margin="0,0,0,6"/>
+                                        <DockPanel Grid.Row="2">
+                                            <TextBlock Text="{Binding DirectionLabel}" Foreground="#BAC2DE" FontSize="11"/>
+                                            <TextBlock Text="{Binding SpeedText}" Foreground="#89B4FA" FontSize="11" Margin="12,0,0,0"/>
+                                            <Button DockPanel.Dock="Right" Content="Cancel" Margin="12,0,0,0" Padding="8,1"
+                                                    Background="Transparent" Foreground="#F38BA8" BorderThickness="0" Cursor="Hand" FontSize="11"
+                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibility}}"
+                                                    Command="{Binding DataContext.CancelTransferCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <TextBlock HorizontalAlignment="Right" Foreground="#6C7086" FontSize="11">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0:N0} / {1:N0} bytes">
+                                                        <Binding Path="BytesTransferred"/>
+                                                        <Binding Path="FileSizeBytes"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DockPanel>
+                                        <TextBlock Grid.Row="3" Text="{Binding ErrorMessage}" Foreground="#F38BA8" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Settings Tab -->
+            <TabItem Header="Settings" Foreground="#CDD6F4" FontSize="13">
+                <ScrollViewer Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,0">
+
+                        <!-- Run on Startup -->
+                        <Border Margin="0,0,0,12" Padding="16,14" Background="#181825" CornerRadius="8" BorderBrush="#313244" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="GENERAL" FontWeight="Bold" Foreground="#89B4FA" FontSize="11" Margin="0,0,0,10"/>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                              IsChecked="{Binding RunOnStartup}"
+                                              Margin="12,0,0,0">
+                                        <CheckBox.LayoutTransform>
+                                            <ScaleTransform ScaleX="1.3" ScaleY="1.3" />
+                                        </CheckBox.LayoutTransform>
+                                    </CheckBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Run CrossSync on Windows Startup" Foreground="#CDD6F4" FontWeight="SemiBold" FontSize="13"/>
+                                        <TextBlock Text="Automatically start CrossSync when Windows boots, so clipboard and files sync 24/7 without opening manually." 
+                                                   Foreground="#6C7086" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <DockPanel Margin="0,14,0,0">
+                                    <CheckBox DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                              IsChecked="{Binding IsClipboardSyncEnabled}"
+                                              Margin="12,0,0,0">
+                                        <CheckBox.LayoutTransform>
+                                            <ScaleTransform ScaleX="1.3" ScaleY="1.3" />
+                                        </CheckBox.LayoutTransform>
+                                    </CheckBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Clipboard Sync" Foreground="#CDD6F4" FontWeight="SemiBold" FontSize="13"/>
+                                        <TextBlock Text="Send what you copy on this PC to your phones, and put text copied on a phone onto this PC's clipboard. Phones always relay to each other."
+                                                   Foreground="#6C7086" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <DockPanel Margin="0,14,0,0">
+                                    <CheckBox DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                              IsChecked="{Binding IsExplorerMenuEnabled}"
+                                              Margin="12,0,0,0">
+                                        <CheckBox.LayoutTransform>
+                                            <ScaleTransform ScaleX="1.3" ScaleY="1.3" />
+                                        </CheckBox.LayoutTransform>
+                                    </CheckBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Explorer Right-Click Menu" Foreground="#CDD6F4" FontWeight="SemiBold" FontSize="13"/>
+                                        <TextBlock Text="Right-click any file → CrossSync → choose a phone. On Windows 11 it's under &quot;Show more options&quot;."
+                                                   Foreground="#6C7086" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Pairing -->
+                        <Border Margin="0,0,0,12" Padding="16,14" Background="#181825" CornerRadius="8" BorderBrush="#313244" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="PAIRING" FontWeight="Bold" Foreground="#89B4FA" FontSize="11" Margin="0,0,0,10"/>
+                                <TextBlock Text="To connect a new phone, enter this code in the CrossSync app when it asks. The code works once."
+                                           Foreground="#6C7086" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding PairingCode}" FontSize="28" FontWeight="Bold" Foreground="#A6E3A1"
+                                               FontFamily="Consolas" VerticalAlignment="Center"/>
+                                    <Button Content="New Code" Command="{Binding RegeneratePairingCodeCommand}" Margin="16,0,0,0"
+                                            Background="#313244" Foreground="#CDD6F4" Padding="10,6" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Foreground="#6C7086" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap">
+                                    <Run Text="PC fingerprint (should match the one shown on the phone): "/>
+                                    <Run Text="{Binding CertificateFingerprint, Mode=OneWay}" FontFamily="Consolas" Foreground="#CDD6F4"/>
+                                </TextBlock>
+
+                                <TextBlock Text="Paired Devices" Foreground="#CDD6F4" FontWeight="SemiBold" FontSize="13" Margin="0,14,0,6"/>
+                                <ItemsControl ItemsSource="{Binding PairedDevices}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,2">
+                                                <Button DockPanel.Dock="Right" Content="Remove"
+                                                        Command="{Binding DataContext.RemovePairedDeviceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent" Foreground="#F38BA8" BorderThickness="0" Cursor="Hand"/>
+                                                <TextBlock VerticalAlignment="Center" Foreground="#BAC2DE" FontSize="12">
+                                                    <Run Text="{Binding Name, Mode=OneWay}" FontWeight="SemiBold"/>
+                                                    <Run Text="{Binding PairedAt, Mode=OneWay, StringFormat='  · paired {0:g}'}" Foreground="#6C7086"/>
+                                                </TextBlock>
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Download Directory -->
+                        <Border Margin="0,0,0,12" Padding="16,14" Background="#181825" CornerRadius="8" BorderBrush="#313244" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="STORAGE" FontWeight="Bold" Foreground="#89B4FA" FontSize="11" Margin="0,0,0,10"/>
+                                <TextBlock Text="Download Directory" Foreground="#CDD6F4" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,6"/>
+                                <TextBlock Text="Files received from your phone are saved here." Foreground="#6C7086" FontSize="11" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding DownloadDirectory, UpdateSourceTrigger=LostFocus}"
+                                             Background="#1E1E2E" Foreground="#CDD6F4" BorderBrush="#313244"
+                                             Padding="8,6" FontSize="12" VerticalContentAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseDownloadDirectoryCommand}"
+                                            Background="#313244" Foreground="#CDD6F4" Padding="10,6" Margin="6,0" BorderThickness="0" Cursor="Hand"/>
+                                    <Button Grid.Column="2" Content="Open" Command="{Binding OpenDownloadFolderCommand}"
+                                            Background="#89B4FA" Foreground="#11111B" FontWeight="Bold" Padding="10,6" BorderThickness="0" Cursor="Hand"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- About -->
+                        <Border Padding="16,14" Background="#181825" CornerRadius="8" BorderBrush="#313244" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="ABOUT" FontWeight="Bold" Foreground="#89B4FA" FontSize="11" Margin="0,0,0,10"/>
+                                <TextBlock Text="CrossSync v1.0" Foreground="#CDD6F4" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock Text="Automatic clipboard &amp; file sync between Windows and Android over your local network." 
+                                           Foreground="#6C7086" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status Footer -->
+        <Border Grid.Row="2" Background="#11111B" Padding="16,8" BorderBrush="#313244" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="PC IP: " Foreground="#89B4FA" FontWeight="SemiBold" FontSize="12"/>
+                    <TextBlock Text="{Binding LocalIp}" Foreground="#A6E3A1" FontWeight="Bold" FontSize="12" Margin="0,0,16,0"/>
+                    <TextBlock Text="Port: 45678" Foreground="#BAC2DE" FontSize="12" Margin="0,0,16,0"/>
+                    <TextBlock Text="Pairing code: " Foreground="#89B4FA" FontWeight="SemiBold" FontSize="12"/>
+                    <TextBlock Text="{Binding PairingCode}" Foreground="#A6E3A1" FontWeight="Bold" FontSize="12" FontFamily="Consolas" Margin="0,0,16,0"/>
+                    <TextBlock Text="{Binding StatusText}" Foreground="#6C7086" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock HorizontalAlignment="Right" Foreground="#6C7086" FontSize="11" Text="CrossSync v1.0.0" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
