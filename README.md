@@ -166,4 +166,8 @@ The wire format, handshake and pairing are documented in [docs/PROTOCOL.md](docs
 
 ## License
 
-[MIT](LICENSE) © 2026 Sanket Baviskar
+Copyright © 2026 Sanket Baviskar
+
+CrossSync is free software. You can redistribute it and/or modify it under the terms of the
+[GNU General Public License v3.0](LICENSE) or (at your option) any later version.
+It is distributed WITHOUT ANY WARRANTY; see the license for details.
