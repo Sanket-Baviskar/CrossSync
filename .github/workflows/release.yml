@@ -8,9 +8,10 @@
 #   ANDROID_KEY_ALIAS         key alias (crosssync)
 #   ANDROID_KEY_PASSWORD      key password
 #
-# Manual run (Actions → Release → Run workflow) with "Refresh release" set to an existing tag:
-# rebuilds from the selected branch and replaces the exe (and optionally the APK) on that release,
+# Manual run (Actions → Release → Run workflow): rebuilds from the selected branch and replaces the
+# exe (and optionally the APK) on the latest release, or on the tag typed in "Refresh release",
 # with new checksums and attestations. Other release files and the notes are left alone.
+# Type "none" to only build, without touching any release.
 name: Release
 
 on:
@@ -19,9 +20,9 @@ on:
   workflow_dispatch:
     inputs:
       refresh_tag:
-        description: "Refresh release: existing release tag to update (e.g. v1.0.0). Empty = build only."
+        description: "Release to update: latest, a tag like v1.0.0, or none (build only)"
         required: false
-        default: ""
+        default: "latest"
       include_apk:
         description: "Also replace the APK"
         type: boolean
@@ -56,7 +57,7 @@ jobs:
 
   android:
     name: Android APK
-    if: github.event_name == 'push' || inputs.include_apk || inputs.refresh_tag == ''
+    if: github.event_name == 'push' || inputs.include_apk || inputs.refresh_tag == 'none'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -143,7 +144,7 @@ jobs:
     name: Refresh existing release
     needs: [windows, android]
     if: >-
-      always() && github.event_name == 'workflow_dispatch' && inputs.refresh_tag != '' &&
+      always() && github.event_name == 'workflow_dispatch' && inputs.refresh_tag != 'none' &&
       needs.windows.result == 'success' &&
       (needs.android.result == 'success' || needs.android.result == 'skipped')
     runs-on: ubuntu-latest
@@ -155,6 +156,15 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.refresh_tag }}
     steps:
+      - name: Resolve release tag
+        run: |
+          if [ -z "$TAG" ] || [ "$TAG" = "latest" ]; then
+            TAG=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName > /dev/null
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "Refreshing release $TAG"
+
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
